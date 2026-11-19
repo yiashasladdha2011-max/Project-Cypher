@@ -1,0 +1,552 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Cypher</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    padding: 25px 15px;
+    background: #10131a;
+    color: #e9edf5;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    max-width: 620px;
+    margin: auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+header h1 {
+    letter-spacing: 4px;
+    font-size: 29px;
+    margin-bottom: 5px;
+}
+
+header p {
+    color: #8993a5;
+    font-size: 12px;
+    letter-spacing: 2px;
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.tabs button {
+    flex: 1;
+    padding: 13px;
+    background: #202633;
+    border: 1px solid #303b4d;
+    color: #aab4c5;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.tabs button.active {
+    background: #263c59;
+    color: #fff;
+    border-color: #5998dc;
+}
+
+.panel {
+    background: #191f2a;
+    border: 1px solid #303b4d;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+label {
+    display: block;
+    margin: 15px 0 8px;
+    font-size: 13px;
+    color: #b8c4d7;
+}
+
+textarea, input {
+    width: 100%;
+    padding: 13px;
+    background: #10151e;
+    border: 1px solid #354155;
+    border-radius: 7px;
+    color: white;
+    font: 15px Arial;
+    outline: none;
+}
+
+textarea:focus, input:focus {
+    border-color: #5998dc;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 95px;
+}
+
+button.action {
+    width: 100%;
+    padding: 13px;
+    margin-top: 16px;
+    background: #347bc1;
+    color: white;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+button.action:hover { background: #438ed5; }
+
+button.copy {
+    background: #283445;
+    border: 1px solid #46566c;
+    color: white;
+    padding: 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.output {
+    margin-top: 18px;
+    padding: 14px;
+    background: #10151e;
+    border: 1px solid #354155;
+    border-radius: 8px;
+}
+
+.output textarea {
+    min-height: 110px;
+    overflow-wrap: anywhere;
+    word-break: break-all;
+    font-family: monospace;
+    line-height: 1.7;
+}
+
+.result {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 8px;
+    background: #17352d;
+    color: #80e6b6;
+    font-size: 18px;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.hint {
+    color: #8490a2;
+    font-size: 12px;
+    line-height: 1.6;
+    margin-top: 15px;
+}
+
+.error {
+    color: #ff8585;
+    font-size: 13px;
+    margin-top: 12px;
+}
+
+.hidden { display: none; }
+
+footer {
+    text-align: center;
+    margin-top: 25px;
+    color: #647085;
+    font-size: 11px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+    <h1>PROJECT CYPHER</h1>
+    <p>CY-02 · MORSE ENCODING SYSTEM</p>
+</header>
+
+<div class="tabs">
+    <button id="senderTab" class="active"
+        onclick="showTab('sender')">SENDER</button>
+    <button id="receiverTab"
+        onclick="showTab('receiver')">RECEIVER</button>
+</div>
+
+<!-- SENDER -->
+
+<div id="sender" class="panel">
+
+    <h3>Encode Message</h3>
+
+    <label>Your message</label>
+    <textarea id="message"
+        placeholder="Write your message here..."></textarea>
+
+    <label>Shift value</label>
+    <input id="shift" type="number"
+        min="-25" max="25" value="-11">
+
+    <button class="action" onclick="encode()">
+        GENERATE CYPHER CODE
+    </button>
+
+    <div id="encodedOutput" class="output hidden">
+        <label>Generated code</label>
+        <textarea id="encodedCode" readonly></textarea>
+        <button class="copy" onclick="copyText('encodedCode')">
+            COPY CODE
+        </button>
+    </div>
+
+    <div id="senderError" class="error"></div>
+
+    <p class="hint">
+        Enter a message and a shift value.
+        The system automatically converts the shift
+        and message into Morse code.
+    </p>
+</div>
+
+<!-- RECEIVER -->
+
+<div id="receiver" class="panel hidden">
+
+    <h3>Decode Message</h3>
+
+    <label>Paste received Cypher code</label>
+    <textarea id="receivedCode"
+        placeholder="Paste the complete code here..."></textarea>
+
+    <button class="action" onclick="decode()">
+        DECODE MESSAGE
+    </button>
+
+    <div id="decodedOutput" class="hidden">
+        <label>Original message</label>
+        <div id="decodedMessage" class="result"></div>
+        <button class="copy" onclick="copyResult()">
+            COPY MESSAGE
+        </button>
+        <p id="recoveredShift" class="hint"></p>
+    </div>
+
+    <div id="receiverError" class="error"></div>
+
+    <p class="hint">
+        Paste the complete code. The receiver
+        automatically reads the Morse header,
+        identifies the shift and recovers your message.
+    </p>
+</div>
+
+<footer>
+    PROJECT CYPHER · VERSION CY-02
+</footer>
+
+</div>
+
+<script>
+
+// STANDARD INTERNATIONAL MORSE ALPHABET
+
+const morse = {
+ A:".-", B:"-...", C:"-.-.", D:"-..",
+ E:".", F:"..-.", G:"--.", H:"....",
+ I:"..", J:".---", K:"-.-", L:".-..",
+ M:"--", N:"-.", O:"---", P:".--.",
+ Q:"--.-", R:".-.", S:"...", T:"-",
+ U:"..-", V:"...-", W:".--", X:"-..-",
+ Y:"-.--", Z:"--..",
+
+ "0":"-----", "1":".----",
+ "2":"..---", "3":"...--",
+ "4":"....-", "5":".....",
+ "6":"-....", "7":"--...",
+ "8":"---..", "9":"----.",
+
+ ".":".-.-.-", ",":"--..--",
+ "?":"..--..", "!":"-.-.--",
+ "'":".----.", '"':".-..-.",
+ ":":"---...", ";":"-.-.-.",
+ "-":"-....-", "_":"..--.-",
+ "=":"-...-", "/":"-..-.",
+ "(":"-.--.", ")":"-.--.-",
+ "@":".--.-.", "&":".-...",
+ "+":".-.-.", "$":"...-..-"
+};
+
+// REVERSE MORSE LOOKUP
+
+const reverseMorse = {};
+
+for (const [character, code] of Object.entries(morse)) {
+    reverseMorse[code] = character;
+}
+
+// RESERVED CONTROL SYMBOLS
+// These are longer than standard Morse characters.
+
+const SPACE = "........";
+const NEWLINE = ".........";
+const UPPER = "..........";
+const LOWER = "...........";
+
+// ENCODER
+
+function encode() {
+
+    const message = document.getElementById("message").value;
+    const shift = Number(document.getElementById("shift").value);
+
+    const error = document.getElementById("senderError");
+    const output = document.getElementById("encodedOutput");
+
+    error.textContent = "";
+    output.classList.add("hidden");
+
+    if (!message) {
+        error.textContent = "Please enter a message.";
+        return;
+    }
+
+    if (!Number.isInteger(shift) || shift < -25 || shift > 25 || shift === 0) {
+        error.textContent = "Shift must be a whole number from -25 to +25, excluding zero.";
+        return;
+    }
+
+    const tokens = [];
+    let currentCase = null;
+
+    for (const char of message) {
+
+        if (char === " ") {
+            tokens.push(SPACE);
+            continue;
+        }
+
+        if (char === "\n" || char === "\r") {
+            if (char === "\r") continue;
+            tokens.push(NEWLINE);
+            continue;
+        }
+
+        if (!/[A-Za-z]/.test(char) && !morse[char]) {
+            error.textContent = "Unsupported character: " + char;
+            return;
+        }
+
+        if (/[A-Za-z]/.test(char)) {
+
+            const upper = char === char.toUpperCase();
+
+            if (currentCase !== upper) {
+                tokens.push(upper ? UPPER : LOWER);
+                currentCase = upper;
+            }
+
+            const index = char.toUpperCase().charCodeAt(0) - 65;
+            const shifted = (index + shift + 26) % 26;
+            const shiftedChar = String.fromCharCode(65 + shifted);
+
+            tokens.push(morse[shiftedChar]);
+
+        } else {
+            tokens.push(morse[char]);
+        }
+    }
+
+    // Encode shift header
+
+    const sign = shift < 0 ? "N" : "P";
+    const key = String.fromCharCode(64 + Math.abs(shift));
+
+    const header = "(" + morse[sign] + " / " + morse[key] + ")";
+
+    const finalCode = tokens.join(" ") + " " + header;
+
+    document.getElementById("encodedCode").value = finalCode;
+    output.classList.remove("hidden");
+}
+
+// DECODER
+
+function decode() {
+
+    const code = document.getElementById("receivedCode").value.trim();
+
+    const error = document.getElementById("receiverError");
+    const output = document.getElementById("decodedOutput");
+
+    error.textContent = "";
+    output.classList.add("hidden");
+
+    if (!code) {
+        error.textContent = "Please paste a Cypher code.";
+        return;
+    }
+
+    // Extract final shift header
+
+    const match = code.match(/^(.*?)\s+\(\s*(\.-|\.--\.)\s*\/\s*([.-]+)\s*\)$/);
+
+    if (!match) {
+        error.textContent = "Invalid Cypher header or message format.";
+        return;
+    }
+
+    const body = match[1].trim();
+    const signCode = match[2];
+    const keyCode = match[3];
+
+    const sign = reverseMorse[signCode];
+    const key = reverseMorse[keyCode];
+
+    if (!["N", "P"].includes(sign) || !key ||
+        !/[A-Y]/.test(key)) {
+        error.textContent = "Invalid shift key.";
+        return;
+    }
+
+    const amount = key.charCodeAt(0) - 64;
+    const shift = sign === "N" ? -amount : amount;
+
+    const tokens = body.split(/\s+/);
+
+    let result = "";
+    let currentCase = false;
+    let lastWasNewline = false;
+
+    try {
+
+        for (const token of tokens) {
+
+            if (token === SPACE) {
+                result += " ";
+                lastWasNewline = false;
+                continue;
+            }
+
+            if (token === NEWLINE) {
+                result += "\n";
+                lastWasNewline = true;
+                continue;
+            }
+
+            if (token === UPPER) {
+                currentCase = true;
+                continue;
+            }
+
+            if (token === LOWER) {
+                currentCase = false;
+                continue;
+            }
+
+            const character = reverseMorse[token];
+
+            if (!character) {
+                throw new Error("Unknown Morse sequence: " + token);
+            }
+
+            if (/^[A-Z]$/.test(character)) {
+
+                const index = character.charCodeAt(0) - 65;
+                const original = (index - shift + 26) % 26;
+
+                let originalChar = String.fromCharCode(65 + original);
+
+                if (!currentCase) {
+                    originalChar = originalChar.toLowerCase();
+                }
+
+                result += originalChar;
+
+            } else {
+                result += character;
+            }
+
+            lastWasNewline = false;
+        }
+
+        if (result.length === 0) {
+            throw new Error("Message is empty.");
+        }
+
+    } catch (e) {
+        error.textContent = e.message;
+        return;
+    }
+
+    document.getElementById("decodedMessage").textContent = result;
+
+    document.getElementById("recoveredShift").textContent =
+        "Automatically recovered shift: " +
+        (shift > 0 ? "+" : "") + shift;
+
+    output.classList.remove("hidden");
+}
+
+// INTERFACE
+
+function showTab(tab) {
+
+    document.getElementById("sender").classList.toggle("hidden", tab !== "sender");
+    document.getElementById("receiver").classList.toggle("hidden", tab !== "receiver");
+
+    document.getElementById("senderTab").classList.toggle("active", tab === "sender");
+    document.getElementById("receiverTab").classList.toggle("active", tab === "receiver");
+
+}
+
+// COPY
+
+async function copyText(id) {
+
+    const field = document.getElementById(id);
+
+    try {
+        await navigator.clipboard.writeText(field.value);
+        alert("Copied!");
+    } catch (e) {
+        field.focus();
+        field.select();
+        document.execCommand("copy");
+        alert("Copied!");
+    }
+}
+
+async function copyResult() {
+
+    const text = document.getElementById("decodedMessage").textContent;
+
+    try {
+        await navigator.clipboard.writeText(text);
+        alert("Message copied!");
+    } catch (e) {
+        const temp = document.createElement("textarea");
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        temp.remove();
+        alert("Message copied!");
+    }
+}
+
+</script>
+</body>
+</html>
