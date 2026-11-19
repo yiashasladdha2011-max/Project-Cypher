@@ -401,7 +401,7 @@ function decode() {
 
     // Extract final shift header
 
-    const match = code.match(/^(.*?)\s+\(\s*(\.-|\.--\.)\s*\/\s*([.-]+)\s*\)$/);
+     const match = code.match(/^(.*?)\s+\(\s*(-\.|\.--\.)\s*\/\s*([.-]+)\s*\)$/);
 
     if (!match) {
         error.textContent = "Invalid Cypher header or message format.";
